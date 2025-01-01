@@ -103,6 +103,13 @@ Capybara::SpecHelper.spec '#all' do
     end
   end
 
+  context 'with aria selectors', :focus_ do
+    it 'should find all elements with the given role' do
+      expect(@session.all(:css, 'li').size).to eq(4)
+      expect(@session.all(:aria, { role: 'listitem' }).size).to eq(4)
+    end
+  end
+
   context 'with css as default selector' do
     before { Capybara.default_selector = :css }
 

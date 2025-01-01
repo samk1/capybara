@@ -120,6 +120,14 @@ module Capybara
         end
       end
 
+      def find_aria(aria, **options)
+        if base.method(:find_xpath).arity == 1
+          base.find_aria(aria)
+        else
+          base.find_aria(aria, **options)
+        end
+      end
+
       # @api private
       def session_options
         session.config

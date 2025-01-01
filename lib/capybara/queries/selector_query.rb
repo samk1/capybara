@@ -259,6 +259,8 @@ module Capybara
           else
             node.find_xpath(xpath(exact), **hints)
           end
+        when :aria
+          node.find_aria(expression)
         else
           raise ArgumentError, "Unknown format: #{selector_format}"
         end

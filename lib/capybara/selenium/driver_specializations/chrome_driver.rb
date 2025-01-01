@@ -54,6 +54,47 @@ module Capybara::Selenium::Driver::ChromeDriver
     execute_cdp('Storage.clearDataForOrigin', origin: '*', storageTypes: storage_types_to_clear)
   end
 
+  def filter_full_ax_tree(role: nil, accessible_name: nil)
+    role_filter = lambda do |node|
+      node.dig('role', 'value') == role
+    end
+
+    accessible_name_filter = lambda do |node|
+      node.dig('name', 'value') == accessible_name
+    end
+
+    visit_frames = lambda do |frame_tree, &block|
+      block.call(frame_tree['frame'])
+      frame_tree['childFrames'].each do |child_frame|
+        visit_frames.call(child_frame, &block)
+      end
+    end
+
+    frame_id = bridge.window_handle
+
+    loader_id = execute_cdp('Page.getFrameTree').then do |frame_tree|
+      frame_enumerator = Enumerator.new do |y|
+        visit_frames.call(frame_tree['frameTree']) do |frame|
+          y << frame
+        end
+      end
+
+      frame = frame_enumerator.find { |f| f['id'] == frame_id }
+      frame['loaderId']
+    end
+
+    execute_cdp('Accessibility.getFullAXTree').then do |tree|
+      tree['nodes'].filter!(&role_filter) if role
+      tree['nodes'].filter!(&accessible_name_filter) if accessible_name
+      tree['nodes'].map do |node|
+        Selenium::WebDriver::Element.new(
+          bridge,
+          ['f', frame_id, 'd', loader_id, 'e', node['backendDOMNodeId']].join('.')
+        )
+      end
+    end
+  end
+
 private
 
   def storage_types_to_clear

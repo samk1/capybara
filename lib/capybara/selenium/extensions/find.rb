@@ -11,10 +11,18 @@ module Capybara
         find_by(:css, selector, uses_visibility: uses_visibility, texts: texts, styles: styles, position: position)
       end
 
+      def find_aria(selector, uses_visibility: false, texts: [], styles: nil, position: false, **_options)
+        find_by(:aria, selector, uses_visibility: uses_visibility, texts: texts, styles: styles, position: position)
+      end
+
     private
 
       def find_by(format, selector, uses_visibility:, texts:, styles:, position:)
-        els = find_context.find_elements(format, selector)
+        els = if format == :aria
+          filter_full_ax_tree(**selector)
+        else
+          find_context.find_elements(format, selector)
+        end
         hints = []
 
         if (els.size > 2) && !ENV['DISABLE_CAPYBARA_SELENIUM_OPTIMIZATIONS']
@@ -26,6 +34,7 @@ module Capybara
             []
           end
         end
+        binding.break
         els.map.with_index { |el, idx| build_node(el, hints[idx] || {}) }
       end
 

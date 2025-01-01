@@ -42,6 +42,10 @@ module Capybara
         @filter_set.expression_filters
       end
 
+      def aria(*allowed_filters, &block)
+        expression(:aria, allowed_filters, &block)
+      end
+
       ##
       #
       # Define a selector by an xpath expression

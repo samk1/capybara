@@ -471,6 +471,7 @@ Capybara::Selector::FilterSet.add(:_field) do
   end
 end
 
+require 'capybara/selector/definition/aria'
 require 'capybara/selector/definition/xpath'
 require 'capybara/selector/definition/css'
 require 'capybara/selector/definition/id'
